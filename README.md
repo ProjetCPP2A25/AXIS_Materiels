@@ -1,29 +1,44 @@
-# A.X.I.S – RedFlame Protection (projet intégré)
+# A.X.I.S – Module « Gestion des matériels » (Qt / C++)
 
-Application Qt/C++ unique regroupant les 4 modules :
-Employés (+ connexion et congés), Interventions, **Véhicules**, Matériels.
+## Prérequis
+- Qt 5.15+ ou Qt 6 (modules Widgets et Sql, driver QSQLITE inclus avec Qt)
+- Un compilateur C++17
 
 ## Compilation
-- Qt 5.15+ ou Qt 6 (Widgets, Sql, Network – driver QSQLITE inclus avec Qt), compilateur C++17.
-- **Qt Creator** : ouvrir `AXIS.pro` (qmake), puis Compiler / Exécuter.
-- Après avoir ajouté ces fichiers : *Build > Nettoyer tout*, puis *Exécuter qmake*, puis *Reconstruire*.
+**Qt Creator** : ouvrir `AXIS_Materiels.pro` (qmake), puis Exécuter.
 
-## Droits d'accès (menu principal)
-| Module        | Rôles autorisés                      |
-|---------------|--------------------------------------|
-| Employés      | Administrateur, Chef de caserne      |
-| Interventions | Opérateur de dispatch, Chef de caserne |
-| Véhicules     | Chef de caserne, Administrateur      |
-| Matériels     | Magasinier, Chef de caserne          |
+**Ligne de commande (CMake)** :
+    cmake -S . -B build && cmake --build build
 
-## Module Véhicules (intégré)
-- Fichiers : `vehiclespage.*`, `vehicledonutwidget.*`, `vehicletheme.h`.
-- Page branchée dans `axis.cpp` (page `PVehicule` du `SWAxis`), avec la barre latérale commune
-  (`sidebar.*`) : boutons « Menu principal » / « Déconnexion » + utilisateur connecté.
-- Données : `vehicules.json` dans le dossier AppData de l'application (comme avant, pas de base SQL).
-  Au premier lancement, les véhicules saisis dans l'ancienne version autonome (dossier `AXIS`) sont repris.
-- Le widget en anneau a été renommé `VehicleDonutWidget` : `DonutWidget` existait déjà dans `charts.h`
-  (module Matériels) et provoquait un conflit à l'édition de liens.
+## Fichiers de l'interface (Qt Designer)
+- `mainwindow.ui` : fenêtre principale (barre latérale + pages)
+- `materielpage.ui` : écran « Gestion des matériels » (formulaire, liste, statistiques, mouvements)
+  Double-clic sur un `.ui` dans Qt Creator pour le modifier visuellement.
+  Les graphiques (`BarChartWidget`, `DonutWidget`) sont des widgets promus (en-tête `charts.h`).
+  Le style (couleurs) est dans `style.h`.
+
+## Fonctionnalités
+- Ajout / modification / suppression / affichage d'un matériel (validation des champs, référence unique)
+- Recherche par référence ou désignation, tri (référence, désignation, catégorie, quantité, date)
+- Export de l'inventaire en CSV (ouvrable dans Excel)
+- Statistiques : quantités par catégorie (histogramme), niveaux de stock (anneau critique / suffisant)
+- Suivi des mouvements de stock (Entrée / Sortie) avec mise à jour automatique du stock
+- Bandeau « Stock critique » quand quantité < seuil minimal
 
 ## Données
-Base SQLite `axis.db` créée au premier lancement dans AppData (organisation « RedFlame », application « Caserne »).
+Base SQLite `axis.db` créée au premier lancement dans le dossier AppData de l'utilisateur
+(avec les données de démonstration de la maquette). Supprimez ce fichier pour repartir de zéro.
+
+## Reste à faire
+- `MaterielPage::sendAlertEmail()` journalise seulement l'alerte : brancher un vrai envoi (SMTP...).
+
+## Module « Gestion des véhicules » (intégré)
+- `vehiculepage.ui` / `vehiculepage.*` : page Véhicules (formulaire, liste triable, alerte de maintenance,
+  statistiques par état et par disponibilité, export PDF et CSV). Même structure que `MaterielPage` :
+  barre latérale commune (`SidebarFrame`) + page défilante, signaux `menuRequested` / `logoutRequested`.
+- `vehicule.*` : structure `Vehicule` et accès SQLite (table `vehicules`, créée au premier lancement avec
+  3 véhicules d'exemple, dans la même base `caserne.db` que les autres modules).
+- `vehiculedonut.*` : graphiques en anneau (`VehiculeDonutWidget`, distinct de `DonutWidget` de `charts.h`).
+- Accès : rôles « Chef de caserne » et « Administrateur » (`Employe::aAcces`, module 2).
+- Le style réutilise `style.h` comme la page Matériels (cartes `card`, `cardTitle`, `fieldLabel`, `muted`,
+  bandeau `#banner`, boutons `btnAdd`).

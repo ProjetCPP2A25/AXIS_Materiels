@@ -1,12 +1,8 @@
+build/
+build-*/
+.qtcreator/
 *.user
 *.user.*
-build*/
-Debug/
-Release/
-debug/
-release/
+.qtc_clangd/
 *.o
-moc_*
-ui_*.h
-qrc_*.cpp
-Makefile*
+*.exe
